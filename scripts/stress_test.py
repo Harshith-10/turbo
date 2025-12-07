@@ -30,7 +30,7 @@ class Solution {
                 right--;
             }
         }
-        return maxArea;
+        return maxArea
     }
 }
 
