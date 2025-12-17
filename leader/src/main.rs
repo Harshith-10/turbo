@@ -6,7 +6,6 @@ use std::net::SocketAddr;
 use tokio::net::UdpSocket;
 use tracing::{info, error};
 use tracing_subscriber;
-use std::sync::Arc;
 
 mod state;
 mod api;

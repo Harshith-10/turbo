@@ -1,10 +1,10 @@
 use bollard::Docker;
-use bollard::container::{Config, CreateContainerOptions, StartContainerOptions, RemoveContainerOptions, UploadToContainerOptions, DownloadFromContainerOptions, LogOutput};
+use bollard::container::{Config, CreateContainerOptions, RemoveContainerOptions, UploadToContainerOptions, DownloadFromContainerOptions, LogOutput};
 use bollard::exec::{StartExecOptions, CreateExecOptions};
 use turbo_common::{Job, JobResult, JobData, JobResultData, TestCaseResult};
 use futures_util::StreamExt;
 use std::default::Default;
-use tracing::{info, error};
+use tracing::info;
 use uuid::Uuid;
 use tar::{Builder, Header, Archive};
 use std::io::Read;
@@ -193,7 +193,7 @@ async fn execute_testcases(docker: &Docker, job_id: Uuid, worker_id: Uuid, langu
         let mut error_output = String::new();
 
         match start_exec {
-            bollard::exec::StartExecResults::Attached { output: mut output, input: mut input } => {
+            bollard::exec::StartExecResults::Attached { mut output, mut input } => {
                 // Send input
                 input.write_all(tc.input.as_bytes()).await.unwrap();
                 input.flush().await.unwrap();
