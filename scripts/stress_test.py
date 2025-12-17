@@ -30,7 +30,7 @@ class Solution {
                 right--;
             }
         }
-        return maxArea
+        return maxArea;
     }
 }
 
@@ -155,7 +155,7 @@ def run_test(num_testcases=100):
                     print(f"  Error: {res['error']}")
                 if len(failures) > 5:
                     print(f"  ... and {len(failures) - 5} more failures")
-            else:
+            elif len(data['results']) > 0:
                 print(f"\n✅ All {num_testcases} testcases passed!")
             
             if data.get('error'):

@@ -19,6 +19,12 @@ echo "Starting 4 Workers..."
 ./target/debug/turbo-worker &
 ./target/debug/turbo-worker &
 ./target/debug/turbo-worker &
+./target/debug/turbo-worker &
+./target/debug/turbo-worker &
+./target/debug/turbo-worker &
+./target/debug/turbo-worker &
+./target/debug/turbo-worker &
+./target/debug/turbo-worker &
 
 echo "Cluster started. Leader PID: $LEADER_PID"
 echo "Press Ctrl+C to stop."
