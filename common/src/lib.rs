@@ -65,4 +65,5 @@ pub enum Message {
     Heartbeat { worker_id: Uuid, port: u16 },
     JobRequest(Job),
     JobCompleted(JobResult),
+    Discovery { port: u16 },
 }

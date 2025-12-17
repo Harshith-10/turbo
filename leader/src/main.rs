@@ -4,6 +4,7 @@ use axum::{
 };
 use std::net::SocketAddr;
 use tokio::net::UdpSocket;
+use tokio::time::{self, Duration};
 use tracing::{info, error};
 use tracing_subscriber;
 
@@ -45,6 +46,32 @@ async fn main() {
                     }
                 }
                 Err(e) => error!("UDP receive error: {}", e),
+            }
+        }
+    });
+
+    // Spawn Discovery Broadcaster
+    tokio::spawn(async move {
+        let socket = UdpSocket::bind("0.0.0.0:0").await.expect("Failed to bind broadcast socket");
+        socket.set_broadcast(true).expect("Failed to set broadcast");
+        
+        let discovery_msg = Message::Discovery { port: 8081 };
+        let msg_bytes = serde_json::to_vec(&discovery_msg).expect("Failed to serialize discovery message");
+        let broadcast_addr = "255.255.255.255:8082";
+        let local_addr = "127.0.0.1:8082";
+
+        let mut interval = time::interval(Duration::from_secs(3));
+        loop {
+            interval.tick().await;
+            // Try Global Broadcast
+            if let Err(e) = socket.send_to(&msg_bytes, broadcast_addr).await {
+                error!("Failed to send global discovery broadcast: {}", e);
+            }
+            // Try Localhost (for local cluster simulation)
+            if let Err(e) = socket.send_to(&msg_bytes, local_addr).await {
+                 // Ignore errors on localhost if it's not reachable (e.g. true production env)
+                 // But log debug if needed.
+                 let _ = e;
             }
         }
     });
