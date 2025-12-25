@@ -4,3 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+redis = { version = "0.27", features = ["aio", "tokio-comp"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+headers = "0.3"
+tokio = { version = "1", features = ["full"] }
+turbo-core = { path = "../turbo-core" }
+futures-util = "0.3.31"
+anyhow = "1.0.100"

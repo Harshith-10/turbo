@@ -5,6 +5,12 @@ pub struct TurboConfig {
     pub server: ServerConfig,
     pub sandbox: SandboxConfig,
     pub redis: RedisConfig,
+    pub database: DatabaseConfig,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct DatabaseConfig {
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -35,6 +41,7 @@ impl TurboConfig {
             .set_default("sandbox.max_concurrent_jobs", 64)?
             .set_default("sandbox.memory_limit_mb", 512)?
             .set_default("redis.url", "redis://127.0.0.1:6379")?
+            .set_default("database.url", "sqlite://turbo.db")?
             // Merge turbo.toml if exists
             .add_source(config::File::with_name("turbo").required(false))
             // Merge environment variables (TURBO_*)

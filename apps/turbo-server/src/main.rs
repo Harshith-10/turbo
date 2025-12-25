@@ -1,3 +1,63 @@
-fn main() {
-    println!("Hello, world!");
+mod api;
+mod worker;
+mod gc;
+
+use std::net::SocketAddr;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use turbo_core::config::TurboConfig;
+use turbo_db::TurboDb;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG")
+                .unwrap_or_else(|_| "turbo_server=debug,tower_http=debug".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    tracing::info!("Starting Turbo Server...");
+
+    let config = TurboConfig::new()?;
+    tracing::info!("Config loaded");
+
+    // Ensure sqlite file URI has proper permissions if applicable
+    // This is a workaround to ensure sqlx can write to the file if it's new
+    let mut db_url = config.database.url.clone();
+    if db_url.starts_with("sqlite://") && !db_url.contains("mode=") {
+         db_url = format!("{}?mode=rwc", db_url);
+    }
+
+    let db = TurboDb::new(&config.redis.url, &db_url).await?;
+    tracing::info!("Combined DB/Queue connected");
+
+    let workers = std::env::var("TURBO_WORKERS")
+        .unwrap_or_else(|_| "10".to_string())
+        .parse::<usize>()
+        .unwrap_or(10);
+    
+    tracing::info!("Starting {} workers", workers);
+
+    for i in 0..workers {
+        let db_clone = db.clone();
+        tokio::spawn(async move {
+            worker::start_worker(i, db_clone).await;
+        });
+    }
+
+    // Spawn Garbage Collector
+    tokio::spawn(async {
+        gc::start_gc().await;
+    });
+
+    let app = api::routes::app(db);
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.server.port));
+    tracing::info!("Listening on {}", addr);
+
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }

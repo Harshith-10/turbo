@@ -8,6 +8,16 @@ pub struct JobRequest {
     pub testcases: Option<Vec<Testcase>>,
     pub args: Option<Vec<String>>,
     pub stdin: Option<String>,
+    pub run_timeout: Option<u64>,
+    pub compile_timeout: Option<u64>,
+    pub run_memory_limit: Option<u64>,
+    pub compile_memory_limit: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Job {
+    pub id: String,
+    pub request: JobRequest,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,7 +60,7 @@ impl Default for ExecutionLimits {
             memory_limit_bytes: 512 * 1024 * 1024, // 512 MB
             pid_limit: 256,
             file_limit: 2048,
-            timeout_ms: 3000, // 3s
+            timeout_ms: 3000,         // 3s
             output_limit_bytes: 1024, // 1KB
             uid: None, // Default to no switch (or root if started as root) until configured
             gid: None,
@@ -92,7 +102,7 @@ impl std::fmt::Display for StageResult {
         if let Some(signal) = &self.signal {
             writeln!(f, "Signal: {}", signal)?;
         }
-        
+
         if let Some(mem) = self.memory_usage {
             let (val, unit) = if mem > 1024 * 1024 * 1024 {
                 (mem as f64 / 1024.0 / 1024.0 / 1024.0, "GB")
@@ -105,7 +115,7 @@ impl std::fmt::Display for StageResult {
             };
             writeln!(f, "Memory Usage: {:.2} {}", val, unit)?;
         }
-        
+
         if let Some(cpu) = self.cpu_time {
             let (val, unit) = if cpu > 1_000_000 {
                 (cpu as f64 / 1_000_000.0, "s")
@@ -118,14 +128,20 @@ impl std::fmt::Display for StageResult {
         }
 
         if let Some(exec) = self.execution_time {
-             let (val, unit) = if exec > 1_000 {
+            let (val, unit) = if exec > 1_000 {
                 (exec as f64 / 1_000.0, "s")
             } else {
                 (exec as f64, "ms")
             };
             writeln!(f, "Execution Time: {:.2} {}", val, unit)?;
         }
-        
+
+        if !self.stdout.is_empty() {
+            writeln!(f, "Stdout:\n{}", self.stdout)?;
+        }
+        if !self.stderr.is_empty() {
+            writeln!(f, "Stderr:\n{}", self.stderr)?;
+        }
         Ok(())
     }
 }
@@ -136,4 +152,19 @@ pub struct TestcaseResult {
     pub passed: bool,
     pub actual_output: String,
     pub run_details: StageResult,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Runtime {
+    pub language: String,
+    pub version: String,
+    pub aliases: Vec<String>,
+    pub runtime: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Package {
+    pub language: String,
+    pub language_version: String,
+    pub installed: bool,
 }

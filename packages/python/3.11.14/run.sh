@@ -1,3 +1,3 @@
 #!/bin/bash
-# Delegate to the python3 binary in the installation directory
-"$1/bin/python3" "$@"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+"$DIR/bin/python3" "$@"

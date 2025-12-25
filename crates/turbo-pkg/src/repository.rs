@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
 use crate::models::PackageDefinition;
 use semver::Version;
+use std::path::{Path, PathBuf};
 
 pub struct PackageRepository {
     root: PathBuf,
@@ -11,10 +11,18 @@ impl PackageRepository {
         Self { root }
     }
 
-    pub async fn resolve(&self, name: &str, version: Option<&str>) -> anyhow::Result<PackageDefinition> {
+    pub async fn resolve(
+        &self,
+        name: &str,
+        version: Option<&str>,
+    ) -> anyhow::Result<PackageDefinition> {
         let pkg_dir = self.root.join(name);
         if !pkg_dir.exists() {
-            return Err(anyhow::anyhow!("Package '{}' not found in repository at {:?}", name, self.root));
+            return Err(anyhow::anyhow!(
+                "Package '{}' not found in repository at {:?}",
+                name,
+                self.root
+            ));
         }
 
         let version_str = if let Some(v) = version {
@@ -25,7 +33,11 @@ impl PackageRepository {
 
         let def_path = pkg_dir.join(&version_str);
         if !def_path.exists() {
-            return Err(anyhow::anyhow!("Version '{}' of package '{}' not found", version_str, name));
+            return Err(anyhow::anyhow!(
+                "Version '{}' of package '{}' not found",
+                version_str,
+                name
+            ));
         }
 
         PackageDefinition::from_path(def_path)
@@ -88,15 +100,15 @@ impl PackageRepository {
         }
         // Sort by name then version
         packages.sort_by(|a, b| {
-             match a.0.cmp(&b.0) {
-                 std::cmp::Ordering::Equal => {
-                     // Parse versions for correct sorting
-                     let ver_a = Version::parse(&a.1).unwrap_or_else(|_| Version::new(0,0,0));
-                     let ver_b = Version::parse(&b.1).unwrap_or_else(|_| Version::new(0,0,0));
-                     ver_a.cmp(&ver_b)
-                 }
-                 other => other,
-             }
+            match a.0.cmp(&b.0) {
+                std::cmp::Ordering::Equal => {
+                    // Parse versions for correct sorting
+                    let ver_a = Version::parse(&a.1).unwrap_or_else(|_| Version::new(0, 0, 0));
+                    let ver_b = Version::parse(&b.1).unwrap_or_else(|_| Version::new(0, 0, 0));
+                    ver_a.cmp(&ver_b)
+                }
+                other => other,
+            }
         });
         Ok(packages)
     }

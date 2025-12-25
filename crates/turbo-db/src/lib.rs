@@ -1,14 +1,19 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub mod metadata;
+pub mod queue;
+
+pub use metadata::SqliteMetadataStore;
+pub use queue::{QueueError, RedisQueue};
+
+#[derive(Clone)]
+pub struct TurboDb {
+    pub queue: RedisQueue,
+    pub metadata: SqliteMetadataStore,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl TurboDb {
+    pub async fn new(redis_url: &str, sqlite_url: &str) -> anyhow::Result<Self> {
+        let queue = RedisQueue::new(redis_url)?;
+        let metadata = SqliteMetadataStore::new(sqlite_url).await?;
+        Ok(Self { queue, metadata })
     }
 }

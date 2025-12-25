@@ -1,7 +1,7 @@
 use crate::installer::Installer;
-use crate::models::{PackageDefinition, PackageYaml};
+// use crate::models::{PackageVersion};
 use crate::repository::PackageRepository;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 pub struct PackageManager {
     installer: Installer,
@@ -31,14 +31,14 @@ impl PackageManager {
         for (name, version) in repo_packages {
             let install_path = self.runtimes_dir.join(&name).join(&version);
             let installed = install_path.exists();
-            
+
             result.push(crate::models::PackageInfo {
                 name,
                 version,
                 installed,
             });
         }
-        
+
         Ok(result)
     }
 }

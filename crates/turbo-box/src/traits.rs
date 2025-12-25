@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use turbo_core::{StageResult, Result, ExecutionLimits};
+use turbo_core::{ExecutionLimits, Result, StageResult};
 
 #[async_trait]
 pub trait Sandbox: Send + Sync {
@@ -7,7 +7,14 @@ pub trait Sandbox: Send + Sync {
     async fn init(&self, id: &str) -> Result<()>;
 
     /// Run a command inside the sandbox
-    async fn run(&self, id: &str, cmd: &str, args: &[String], env: &[String], limits: Option<ExecutionLimits>) -> Result<StageResult>;
+    async fn run(
+        &self,
+        id: &str,
+        cmd: &str,
+        args: &[String],
+        env: &[String],
+        limits: Option<ExecutionLimits>,
+    ) -> Result<StageResult>;
 
     /// Cleanup the sandbox resources
     async fn cleanup(&self, id: &str) -> Result<()>;

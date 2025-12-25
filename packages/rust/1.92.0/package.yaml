@@ -1,0 +1,7 @@
+name: rust
+version: "1.92.0"
+compiled: true
+description: "Rust 1.92.0"
+aliases:
+  - rust
+  - rs
