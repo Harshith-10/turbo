@@ -1,0 +1,14 @@
+[package]
+name = "turbo-box"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+turbo-core = { path = "../turbo-core" }
+nix = { version = "0.29", features = ["process", "sched", "mount", "fs", "resource", "user"] }
+cgroups-rs = "0.3"
+tokio = { version = "1", features = ["process", "rt", "rt-multi-thread", "macros", "fs", "io-util", "time"] }
+async-trait = "0.1"
+tracing = "0.1"
+thiserror = "2.0"
+uuid = { version = "1.11", features = ["v4"] }

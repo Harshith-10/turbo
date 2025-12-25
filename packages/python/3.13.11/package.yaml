@@ -1,0 +1,6 @@
+name: python
+version: "3.13.11"
+description: "Python 3.13.11 (Source Build)"
+aliases:
+  - py313
+  - python3

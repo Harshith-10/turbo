@@ -1,0 +1,11 @@
+[workspace]
+resolver = "3"
+
+members = [
+    "apps/turbo-cli",
+    "apps/turbo-server",
+    "crates/turbo-box",
+    "crates/turbo-core",
+    "crates/turbo-db",
+    "crates/turbo-pkg"
+]
