@@ -1,7 +1,8 @@
 use crate::api::routes::AppState;
 use axum::{Json, extract::State, http::StatusCode};
 use std::sync::Arc;
-use turbo_core::models::{Job, JobRequest, JobResult, Package, Runtime};
+use turbo_core::models::{Job, JobRequest, JobResult, Runtime};
+use turbo_pkg::PackageInfo;
 use uuid::Uuid;
 
 pub async fn execute(
@@ -43,12 +44,7 @@ pub async fn get_runtimes(State(state): State<Arc<AppState>>) -> Json<Vec<Runtim
     }
 }
 
-pub async fn get_packages(State(state): State<Arc<AppState>>) -> Json<Vec<Package>> {
-    match state.db.metadata.get_packages().await {
-        Ok(pkgs) => Json(pkgs),
-        Err(e) => {
-            tracing::error!("Failed to get packages: {}", e);
-            Json(vec![])
-        }
-    }
+pub async fn get_packages(State(state): State<Arc<AppState>>) -> Json<Vec<PackageInfo>> {
+    Json(state.packages.list())
 }
+

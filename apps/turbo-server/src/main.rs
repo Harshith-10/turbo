@@ -3,9 +3,11 @@ mod worker;
 mod gc;
 
 use std::net::SocketAddr;
+use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use turbo_core::config::TurboConfig;
 use turbo_db::TurboDb;
+use turbo_pkg::PackageCache;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,6 +23,17 @@ async fn main() -> anyhow::Result<()> {
 
     let config = TurboConfig::new()?;
     tracing::info!("Config loaded");
+
+    // Use paths from config (which can be overridden via turbo.toml or TURBO_PATHS_* env vars)
+    let turbo_home = PathBuf::from(&config.paths.turbo_home);
+    let repo_path = PathBuf::from(&config.paths.packages_path);
+    let runtimes_dir = turbo_home.join("runtimes");
+
+    tracing::info!("Turbo home: {:?}, Packages path: {:?}", turbo_home, repo_path);
+
+    // Build in-memory package cache
+    let packages = PackageCache::from_paths(repo_path, runtimes_dir.clone()).await?;
+    tracing::info!("Package cache initialized");
 
     // Ensure sqlite file URI has proper permissions if applicable
     // This is a workaround to ensure sqlx can write to the file if it's new
@@ -41,8 +54,9 @@ async fn main() -> anyhow::Result<()> {
 
     for i in 0..workers {
         let db_clone = db.clone();
+        let runtimes_dir_clone = runtimes_dir.clone();
         tokio::spawn(async move {
-            worker::start_worker(i, db_clone).await;
+            worker::start_worker(i, db_clone, runtimes_dir_clone).await;
         });
     }
 
@@ -51,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
         gc::start_gc().await;
     });
 
-    let app = api::routes::app(db);
+    let app = api::routes::app(db, packages);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], config.server.port));
     tracing::info!("Listening on {}", addr);
@@ -61,3 +75,4 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
+

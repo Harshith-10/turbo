@@ -5,13 +5,15 @@ use axum::{
 };
 use std::sync::Arc;
 use turbo_db::TurboDb;
+use turbo_pkg::PackageCache;
 
 pub struct AppState {
     pub db: TurboDb,
+    pub packages: PackageCache,
 }
 
-pub fn app(db: TurboDb) -> Router {
-    let state = Arc::new(AppState { db });
+pub fn app(db: TurboDb, packages: PackageCache) -> Router {
+    let state = Arc::new(AppState { db, packages });
 
     Router::new()
         .route("/api/v1/execute", post(handlers::execute))

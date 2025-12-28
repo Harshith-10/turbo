@@ -11,21 +11,14 @@ use turbo_core::models::{
 use turbo_db::TurboDb;
 use turbo_pkg::models::PackageDefinition;
 
-fn get_runtime_path(lang: &str, ver: &str) -> PathBuf {
-    let base = std::env::var("TURBO_HOME")
-        .or_else(|_| std::env::var("HOME"))
-        .unwrap_or_else(|_| "/root".to_string());
-    PathBuf::from(base)
-        .join(".turbo")
-        .join("runtimes")
-        .join(lang)
-        .join(ver)
+fn get_runtime_path(runtimes_dir: &Path, lang: &str, ver: &str) -> PathBuf {
+    runtimes_dir.join(lang).join(ver)
 }
 
 /// Starts the worker loop, polling the Redis queue for new jobs.
 ///
 /// This function runs indefinitely, processing jobs one by one.
-pub async fn start_worker(id: usize, db: TurboDb) {
+pub async fn start_worker(id: usize, db: TurboDb, runtimes_dir: PathBuf) {
     info!("Worker {} started", id);
     let sandbox = LinuxSandbox::new("/var/turbo/sandbox".to_string());
 
@@ -33,7 +26,7 @@ pub async fn start_worker(id: usize, db: TurboDb) {
         match db.queue.pop_job().await {
             Ok(Some(job)) => {
                 info!("Processing job {}", job.id);
-                let result = execute_job(&job, &sandbox).await;
+                let result = execute_job(&job, &sandbox, &runtimes_dir).await;
                 if let Err(e) = db.queue.publish_result(&job.id, &result).await {
                     error!("Failed to publish result for {}: {}", job.id, e);
                 }
@@ -55,7 +48,7 @@ pub async fn start_worker(id: usize, db: TurboDb) {
 /// 4. Compiles the code (if `build.sh` exists).
 /// 5. Runs the code (single run or batched testcases).
 /// 6. Cleans up resources.
-async fn execute_job(job: &Job, sandbox: &impl Sandbox) -> JobResult {
+async fn execute_job(job: &Job, sandbox: &impl Sandbox, runtimes_dir: &Path) -> JobResult {
     let job_id = &job.id;
     let req = &job.request;
 
@@ -72,7 +65,7 @@ async fn execute_job(job: &Job, sandbox: &impl Sandbox) -> JobResult {
     }
 
     let version = req.version.as_deref().unwrap_or("latest");
-    let runtime_path = get_runtime_path(&req.language, version);
+    let runtime_path = get_runtime_path(runtimes_dir, &req.language, version);
 
     // Check if runtime exists
     if !runtime_path.exists() {
