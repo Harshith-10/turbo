@@ -2,8 +2,8 @@ import argparse
 import time
 import requests
 import concurrent.futures
-import json
 import statistics
+
 
 def run_request(url, payload):
     start_time = time.time()
@@ -23,27 +23,28 @@ def run_request(url, payload):
             "error": str(e)
         }
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Benchmark Turbo Server")
+    parser = argparse.ArgumentParser(description="Rust Benchmark Turbo Server")
     parser.add_argument("--url", default="http://localhost:3000/api/v1/execute", help="Server URL")
     parser.add_argument("--concurrency", type=int, default=20, help="Number of concurrent requests")
     parser.add_argument("--requests", type=int, default=50, help="Total number of requests")
     args = parser.parse_args()
 
     payload = {
-        "language": "python",
-        "version": "3.14.2",
+        "language": "rust",
+        "version": "1.92.0",
         "files": [
             {
-                "name": "main.py",
-                "content": "print('Hello from Benchmark')",
+                "name": "main.rs",
+                "content": "fn main() { println!(\"Hello from Rust Benchmark\"); }",
                 "encoding": "utf8"
             }
         ],
-        "args": ["main.py"]
+        "args": []
     }
 
-    print(f"Starting benchmark against {args.url}")
+    print(f"Starting Rust benchmark against {args.url}")
     print(f" concurrency: {args.concurrency}")
     print(f" requests: {args.requests}")
 
@@ -56,22 +57,21 @@ def main():
             results.append(future.result())
 
     total_time = time.time() - start_total
-    
     successes = [r for r in results if r["success"]]
     latencies = [r["latency"] for r in successes]
-    
+
     print("\nResults:")
     print(f"  Total Time: {total_time:.2f}s")
     print(f"  Throughput: {len(results) / total_time:.2f} req/s")
     print(f"  Success Rate: {len(successes)}/{len(results)} ({len(successes)/len(results)*100:.1f}%)")
-    
     if latencies:
         print(f"  Avg Latency: {statistics.mean(latencies):.2f}ms")
         print(f"  Min Latency: {min(latencies):.2f}ms")
         print(f"  Max Latency: {max(latencies):.2f}ms")
         print(f"  P50 Latency: {statistics.median(latencies):.2f}ms")
         if len(latencies) >= 4:
-             print(f"  P95 Latency: {statistics.quantiles(latencies, n=20)[18]:.2f}ms")
+            print(f"  P95 Latency: {statistics.quantiles(latencies, n=20)[18]:.2f}ms")
+
 
 if __name__ == "__main__":
     main()

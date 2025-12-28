@@ -104,7 +104,7 @@ async fn execute_job(job: &Job, sandbox: &impl Sandbox) -> JobResult {
         if job_cache_path.exists() {
             info!("Cache hit for job {}, hash {}", job_id, hash);
              // Restore from cache
-            if let Err(e) = copy_dir_recursive(&job_cache_path, &temp_dir).await {
+                if let Err(e) = hard_link_recursive(&job_cache_path, &temp_dir).await {
                 error!("Failed to restore from cache: {}", e);
                 // Fallback to normal compile if restore fails
             } else {
@@ -127,9 +127,15 @@ async fn execute_job(job: &Job, sandbox: &impl Sandbox) -> JobResult {
 
     if compile_result.is_none() && compile_script.exists() {
         let wrapper_cmd = "sh";
+        let mut compile_cmd = format!("cd {} && {}", temp_dir.display(), compile_script.display());
+        for file in &req.files {
+            let filename = file.name.as_deref().unwrap_or("main");
+            compile_cmd.push_str(&format!(" \"{}\"", filename));
+        }
+
         let wrapper_args = vec![
             "-c".to_string(),
-            format!("cd {} && {}", temp_dir.display(), compile_script.display()),
+            compile_cmd,
         ];
 
         let limits = ExecutionLimits {
@@ -323,6 +329,28 @@ async fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
             Box::pin(copy_dir_recursive(&src_path, &dst_path)).await?;
         } else {
             fs::copy(&src_path, &dst_path).await?;
+        }
+    }
+    Ok(())
+}
+
+// Helper for async recursive hard link with fallback to copy
+async fn hard_link_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
+    if !dst.exists() {
+        fs::create_dir_all(dst).await?;
+    }
+    let mut entries = fs::read_dir(src).await?;
+    while let Some(entry) = entries.next_entry().await? {
+        let ty = entry.file_type().await?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if ty.is_dir() {
+            Box::pin(hard_link_recursive(&src_path, &dst_path)).await?;
+        } else {
+            if let Err(_) = fs::hard_link(&src_path, &dst_path).await {
+                // Fallback to copy if hard link fails
+                 fs::copy(&src_path, &dst_path).await?;
+            }
         }
     }
     Ok(())

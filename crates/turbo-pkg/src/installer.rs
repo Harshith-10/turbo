@@ -85,6 +85,18 @@ impl Installer {
             }
         }
 
+        let compile_script = abs_pkg_path.join("compile.sh");
+        if compile_script.exists() {
+            fs::copy(&compile_script, install_dir.join("compile.sh")).await?;
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut perms = std::fs::metadata(install_dir.join("compile.sh"))?.permissions();
+                perms.set_mode(0o755);
+                std::fs::set_permissions(install_dir.join("compile.sh"), perms)?;
+            }
+        }
+
         let env_file = abs_pkg_path.join("env");
         if env_file.exists() {
             fs::copy(&env_file, install_dir.join("env")).await?;
