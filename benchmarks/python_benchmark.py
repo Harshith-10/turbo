@@ -25,7 +25,7 @@ def run_request(url, payload):
 
 def main():
     parser = argparse.ArgumentParser(description="Benchmark Turbo Server")
-    parser.add_argument("--url", default="http://localhost:3000/api/v1/execute", help="Server URL")
+    parser.add_argument("--url", default="http://localhost:4000/api/v1/execute", help="Server URL")
     parser.add_argument("--concurrency", type=int, default=20, help="Number of concurrent requests")
     parser.add_argument("--requests", type=int, default=50, help="Total number of requests")
     args = parser.parse_args()
