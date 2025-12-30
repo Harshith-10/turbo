@@ -26,7 +26,7 @@ enum Commands {
         /// Path to file
         file: PathBuf,
         /// Server URL (default: http://localhost:3000)
-        #[arg(long, default_value = "http://localhost:3000")]
+        #[arg(long, default_value = "http://localhost:4000")]
         server: String,
     },
     /// Package Management
