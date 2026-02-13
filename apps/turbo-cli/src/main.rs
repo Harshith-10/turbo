@@ -86,7 +86,55 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Start => {
-            info!("Starting Turbo Server... (Run 'turbo-server' binary directly for now)");
+            let server_bin = if let Ok(exe) = std::env::current_exe() {
+                let candidate = exe.parent().unwrap().join("turbo-server");
+                if candidate.exists() {
+                    candidate.to_string_lossy().to_string()
+                } else {
+                    "turbo-server".to_string()
+                }
+            } else {
+                "turbo-server".to_string()
+            };
+
+            // Check if root using 'id -u'
+            let is_root = if let Ok(output) = std::process::Command::new("id").arg("-u").output() {
+                String::from_utf8_lossy(&output.stdout).trim() == "0"
+            } else {
+                false
+            };
+
+            if !is_root {
+                info!("Turbo Server requires root privileges.");
+                info!("Requesting sudo access to start server...");
+
+                let mut cmd = std::process::Command::new("sudo");
+                // -E preserves environment variables (HOME) so server sees user's home
+                cmd.arg("-E").arg(&server_bin);
+
+                match cmd.status() {
+                    Ok(status) => {
+                        if !status.success() {
+                            tracing::error!("Server process exited with code: {:?}", status.code());
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to start server with sudo: {}", e);
+                    }
+                }
+            } else {
+                info!("Starting Turbo Server...");
+                match std::process::Command::new(&server_bin).status() {
+                    Ok(status) => {
+                        if !status.success() {
+                            tracing::error!("Server process exited with code: {:?}", status.code());
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to start server: {}", e);
+                    }
+                }
+            }
         }
         Commands::Execute {
             language,
@@ -202,22 +250,24 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Cache { cmd } => match cmd {
-            CacheCommands::Clear => {
-                let cache_path = std::path::PathBuf::from("/tmp/turbo-cache");
-                if cache_path.exists() {
-                    match std::fs::remove_dir_all(&cache_path) {
-                        Ok(_) => println!("{}", "Cache cleared successfully.".green().bold()),
-                        Err(e) => {
-                            eprintln!("{} {}", "Failed to clear cache:".red().bold(), e);
-                            eprintln!("(You might need to run with sudo if the cache is owned by root)");
+        Commands::Cache { cmd } => {
+            match cmd {
+                CacheCommands::Clear => {
+                    let cache_path = std::path::PathBuf::from("/tmp/turbo-cache");
+                    if cache_path.exists() {
+                        match std::fs::remove_dir_all(&cache_path) {
+                            Ok(_) => println!("{}", "Cache cleared successfully.".green().bold()),
+                            Err(e) => {
+                                eprintln!("{} {}", "Failed to clear cache:".red().bold(), e);
+                                eprintln!("(You might need to run with sudo if the cache is owned by root)");
+                            }
                         }
+                    } else {
+                        println!("Cache directory not found. Nothing to clear.");
                     }
-                } else {
-                    println!("Cache directory not found. Nothing to clear.");
                 }
             }
-        },
+        }
     }
 
     Ok(())

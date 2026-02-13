@@ -51,8 +51,7 @@ impl TurboConfig {
             .set_default("sandbox.memory_limit_mb", 512)?
             .set_default("redis.url", "redis://127.0.0.1:6379")?
             .set_default("database.url", "sqlite://turbo.db")?
-            .set_default("paths.turbo_home", "/home/harshu/.turbo")?
-            // .set_default("paths.turbo_home", default_turbo_home())?
+            .set_default("paths.turbo_home", default_turbo_home())?
             .set_default("paths.packages_path", "./packages")?
             // Merge turbo.toml if exists
             .add_source(config::File::with_name("turbo").required(false))
@@ -75,4 +74,3 @@ fn default_turbo_home() -> String {
     // Fallback for when running as root with no HOME set
     "/var/lib/turbo".to_string()
 }
-
