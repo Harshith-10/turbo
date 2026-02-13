@@ -1,6 +1,0 @@
-name: python
-version: "3.14.2"
-description: "Python 3.14.2 (Source Build)"
-aliases:
-  - py314
-  - python3

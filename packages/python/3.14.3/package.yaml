@@ -1,0 +1,7 @@
+name: python
+version: "3.14.3"
+compiled: true
+description: "Python 3.14.3 (Standalone Build)"
+aliases:
+  - py314
+  - python3
