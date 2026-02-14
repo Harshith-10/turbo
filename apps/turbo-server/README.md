@@ -14,7 +14,7 @@ Turbo Server is the core execution engine for the Turbo project. It provides an 
 ### Prerequisites
 
 - Rust (latest stable)
-- Redis and SQLite (managed by `turbo-server`)
+- Redis
 - Root privileges (for Cgroup management)
 
 ### Running the Server

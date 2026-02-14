@@ -1,6 +1,6 @@
 mod api;
-mod worker;
 mod gc;
+mod worker;
 
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -29,21 +29,20 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Turbo home: {:?}", turbo_home);
 
-    // Ensure sqlite file URI has proper permissions if applicable
-    // This is a workaround to ensure sqlx can write to the file if it's new
-    let mut db_url = config.database.url.clone();
-    if db_url.starts_with("sqlite://") && !db_url.contains("mode=") {
-         db_url = format!("{}?mode=rwc", db_url);
-    }
-
-    let db = TurboDb::new(&config.redis.url, &db_url).await?;
+    let db = TurboDb::new(&config.redis.url).await?;
     tracing::info!("Combined DB/Queue connected");
+
+    // Populate runtimes
+    match populate_runtimes(&db, &runtimes_dir).await {
+        Ok(_) => tracing::info!("Runtimes populated"),
+        Err(e) => tracing::error!("Failed to populate runtimes: {}", e),
+    }
 
     let workers = std::env::var("TURBO_WORKERS")
         .unwrap_or_else(|_| "10".to_string())
         .parse::<usize>()
         .unwrap_or(10);
-    
+
     tracing::info!("Starting {} workers", workers);
 
     for i in 0..workers {
@@ -70,3 +69,47 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn populate_runtimes(db: &TurboDb, runtimes_dir: &PathBuf) -> anyhow::Result<()> {
+    use tokio::fs;
+    use turbo_core::models::Runtime;
+    use turbo_pkg::models::PackageDefinition;
+
+    if !runtimes_dir.exists() {
+        tracing::warn!("Runtimes directory not found: {:?}", runtimes_dir);
+        return Ok(());
+    }
+
+    let mut entries = fs::read_dir(runtimes_dir).await?;
+    while let Some(entry) = entries.next_entry().await? {
+        let lang_path = entry.path();
+        if lang_path.is_dir() {
+            let lang = entry.file_name().to_string_lossy().to_string();
+            let mut ver_entries = fs::read_dir(&lang_path).await?;
+            while let Some(ver_entry) = ver_entries.next_entry().await? {
+                let ver_path = ver_entry.path();
+                if ver_path.is_dir() {
+                    let version = ver_entry.file_name().to_string_lossy().to_string();
+
+                    // Note: PackageDefinition::from_path uses std::fs (blocking)
+                    match PackageDefinition::from_path(ver_path.clone()) {
+                        Ok(pkg_def) => {
+                            let runtime = Runtime {
+                                language: lang.clone(),
+                                version: version.clone(),
+                                aliases: pkg_def.yaml.aliases.clone().unwrap_or_default(),
+                                runtime: None,
+                            };
+                            if let Err(e) = db.metadata.add_runtime(&runtime).await {
+                                tracing::error!("Failed to add runtime to Redis: {}", e);
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!("Skipping invalid runtime at {:?}: {}", ver_path, e);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}

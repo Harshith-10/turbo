@@ -1,4 +1,4 @@
-use turbo_core::models::{FileRequest, JobRequest, JobResult, StageStatus};
+use turbo_core::models::{FileRequest, JobRequest, JobResult};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
