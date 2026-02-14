@@ -253,7 +253,8 @@ async fn main() -> anyhow::Result<()> {
         Commands::Cache { cmd } => {
             match cmd {
                 CacheCommands::Clear => {
-                    let cache_path = std::path::PathBuf::from("/tmp/turbo-cache");
+                    let user = std::env::var("USER").unwrap_or_else(|_| "unknown".to_string());
+    let cache_path = std::env::temp_dir().join(format!("turbo-cache-{}", user));
                     if cache_path.exists() {
                         match std::fs::remove_dir_all(&cache_path) {
                             Ok(_) => println!("{}", "Cache cleared successfully.".green().bold()),

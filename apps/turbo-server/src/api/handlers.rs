@@ -2,7 +2,6 @@ use crate::api::routes::AppState;
 use axum::{Json, extract::State, http::StatusCode};
 use std::sync::Arc;
 use turbo_core::models::{Job, JobRequest, JobResult, Runtime};
-use turbo_pkg::PackageInfo;
 use uuid::Uuid;
 
 pub async fn execute(
@@ -44,7 +43,7 @@ pub async fn get_runtimes(State(state): State<Arc<AppState>>) -> Json<Vec<Runtim
     }
 }
 
-pub async fn get_packages(State(state): State<Arc<AppState>>) -> Json<Vec<PackageInfo>> {
-    Json(state.packages.list())
+pub async fn health() -> StatusCode {
+    StatusCode::OK
 }
 

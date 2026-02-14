@@ -1,0 +1,21 @@
+nohup: ignoring input
+[2m2026-02-14T09:15:19.267180Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Starting Turbo Server...
+[2m2026-02-14T09:15:19.267270Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Config loaded
+[2m2026-02-14T09:15:19.267277Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Turbo home: "/home/developer/.turbo", Packages path: "./packages"
+[2m2026-02-14T09:15:19.267466Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Package cache initialized
+[2m2026-02-14T09:15:19.268112Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Combined DB/Queue connected
+[2m2026-02-14T09:15:19.268120Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Starting 10 workers
+[2m2026-02-14T09:15:19.268140Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 0 started
+[2m2026-02-14T09:15:19.268149Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 2 started
+[2m2026-02-14T09:15:19.268161Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 4 started
+[2m2026-02-14T09:15:19.268170Z[0m [32m INFO[0m [2mturbo_server[0m[2m:[0m Listening on 0.0.0.0:4000
+[2m2026-02-14T09:15:19.268142Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 1 started
+[2m2026-02-14T09:15:19.268214Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 3 started
+[2m2026-02-14T09:15:19.268220Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 6 started
+[2m2026-02-14T09:15:19.268234Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 8 started
+[2m2026-02-14T09:15:19.268239Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 7 started
+[2m2026-02-14T09:15:19.268253Z[0m [32m INFO[0m [2mturbo_server::gc[0m[2m:[0m Garbage Collector started. Max entries: 500, Interval: 300s
+[2m2026-02-14T09:15:19.268256Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 5 started
+[2m2026-02-14T09:15:19.268234Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Worker 9 started
+[2m2026-02-14T09:15:26.066948Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Processing job a01d1a9e-956c-43a2-bc30-61f80ed5fe88
+[2m2026-02-14T09:42:22.558821Z[0m [32m INFO[0m [2mturbo_server::worker[0m[2m:[0m Processing job 8a661597-4914-46cf-a9cb-6cdf6c7062c3

@@ -1,6 +1,0 @@
-name: python
-version: "3.11.14"
-description: "Python 3.11.14 (Source Build)"
-aliases:
-  - py311
-  - python3

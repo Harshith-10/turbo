@@ -1,6 +1,0 @@
-name: python
-version: "3.12.12"
-description: "Python 3.12.12 (Source Build)"
-aliases:
-  - py312
-  - python3

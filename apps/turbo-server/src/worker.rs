@@ -52,7 +52,8 @@ async fn execute_job(job: &Job, sandbox: &impl Sandbox, runtimes_dir: &Path) -> 
     let job_id = &job.id;
     let req = &job.request;
 
-    let temp_dir = std::env::temp_dir().join("turbo").join(job_id);
+    let user = std::env::var("USER").unwrap_or_else(|_| "unknown".to_string());
+    let temp_dir = std::env::temp_dir().join(format!("turbo-{}", user)).join(job_id);
     if let Err(e) = fs::create_dir_all(&temp_dir).await {
         return fail_job(job, format!("Failed to create temp dir: {}", e));
     }
@@ -85,7 +86,8 @@ async fn execute_job(job: &Job, sandbox: &impl Sandbox, runtimes_dir: &Path) -> 
     let compile_script = pkg_def.path.join("compile.sh");
     
     // Attempt caching if compile script exists
-    let cache_dir = PathBuf::from("/tmp/turbo-cache");
+    let user = std::env::var("USER").unwrap_or_else(|_| "unknown".to_string());
+    let cache_dir = std::env::temp_dir().join(format!("turbo-cache-{}", user));
     let mut cache_path = None;
 
     if compile_script.exists() {

@@ -2,16 +2,43 @@
 set -e
 
 INSTALL_DIR=$1
-VERSION="25.0.1" # User requested 25.0.1, using latest link as requested
-URL="https://download.oracle.com/java/25/latest/jdk-25_linux-x64_bin.tar.gz"
-TARBALL="jdk-25_linux-x64_bin.tar.gz"
+VERSION="25.0.1"
 
-echo "Downloading Java $VERSION from $URL..."
+# Detect OS and Architecture
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+if [ "$OS" == "linux" ]; then
+    if [ "$ARCH" == "x86_64" ]; then
+        PLATFORM="linux-x64"
+    elif [ "$ARCH" == "aarch64" ]; then
+        PLATFORM="linux-aarch64"
+    else
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+    fi
+elif [ "$OS" == "darwin" ]; then
+    if [ "$ARCH" == "x86_64" ]; then
+        PLATFORM="macos-x64"
+    elif [ "$ARCH" == "arm64" ]; then
+        PLATFORM="macos-aarch64"
+    else
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+    fi
+else
+    echo "Unsupported OS: $OS"
+    exit 1
+fi
+
+TARBALL="jdk-25_${PLATFORM}_bin.tar.gz"
+URL="https://download.oracle.com/java/25/latest/$TARBALL"
+
+echo "Downloading Java $VERSION ($PLATFORM) from $URL..."
 curl -L -O "$URL"
 
 echo "Extracting..."
 mkdir -p "$INSTALL_DIR"
-# Strip the top-level directory (usually jdk-25.x.x)
 tar -xf "$TARBALL" -C "$INSTALL_DIR" --strip-components=1
 
 echo "Cleaning up..."
